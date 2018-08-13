@@ -28,9 +28,7 @@ app.post('/signUp', (req, res) => {
     // front end or back end?
     // "stretch": check that the username already exists?
     if (username && password){
-        // store this information
-        let signUpDate = Date.now()
-        let userID = Math.floor(Math.random() * 10000)
+        // functions.signup(username, password), generates a userID and a startDate
         res.send({ signUp: true }) // don't really need to send anything
     } else {
         // ex. front end can alert(parsedBody.message)
@@ -46,9 +44,8 @@ app.post('/setUpGoal', (req, res) => {
     let endDate = parsedBody.endDate
     let endDateInMSec = Date.parse(endDate)
     // would make a request to the server for the startDate. 
-    // let daysInBetween = (endDateInMSec - startDate)/(1000*60*60*24)
-    // let dailySaveGoal = amount/daysInBetween
-    // let dailySaveGoal = 10
+    // let dailySaveGoal = functions.calculateDailySaveGoal(startDate, endDateInMSec, amount)
+    let dailySaveGoal = 10
     res.send(JSON.stringify({ dailySaveGoal: dailySaveGoal}))
     // if dailySaveGoal is too high or low, prompt for more realistic? Could
     // they still resubmit?
@@ -60,11 +57,7 @@ app.post('/setUpFixed', (req, res) => {
     let fixedExpense = parsedBody.fixedExpense
     // fixedIncome should be an object, {type: bi-weekly, amount: 800}
     let fixedIncome = parsedBody.fixedIncome
-    // if (fixedIncome.type==='biweekly') {let monthlyIncome = (amount/14)*30}
-    // if (fixedIncome.type==='yearly') {let monthlyIncome = (amount/12)}
-    // let monthlyExpenses = sum all the expenses somehow? Object.values?
-    // let monthlyDisposable = monthlyIncome - monthlyExpenses
-    // let dailyDisposable = monthlyDisposable / 30
+    // let dailyDisposable = function.calculateDailyDisposable(fixedIncome, fixedExpense)
     let dailyDisposable = 60
     res.send(JSON.stringify({ dailyDisposable: dailyDisposable }))
     // "stretch": have a catch if the disposable is negative?
@@ -91,7 +84,7 @@ app.get('/getSavingsStatus', (req, res) => {
 app.get('/todaysBudget', (req, res) => {
     let userID = req.query.userID
     // check DB for dailyDisposable, todaysSpending, rollover
-    // todaysBudget = dailyDisposable - todaysSpending
+    // let todaysBudget = functions.calculateTodaysBudget(dailyDisposable, todaysSpending, rollover)
     // reset rollover to 0
     let todaysBudget = 50
     res.send(JSON.stringify({ todaysBudget: todaysBudget}))
@@ -112,8 +105,8 @@ app.post('/endOfDay', (req, res) => {
     res.send(JSON.stringify('end of day'))
 })
 
-app.get('/showTransactions')
+app.get('/showWeek')
 
-app.post('/deleteTransaction')
+// app.post('/deleteTransaction')
 
 app.listen(4000, console.log('listening on 4000'))
