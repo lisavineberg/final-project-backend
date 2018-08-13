@@ -98,7 +98,7 @@ app.get('/todaysBudget', (req, res) => {
 })
 
 app.post('/endOfDay', (req, res) => {
-    console.log("hello world")
+    
     let parsedBody = JSON.parse(req.body.toString())
     // saved amount must be >= 0. 
     let savedAmount = parsedBody.savedAmount
