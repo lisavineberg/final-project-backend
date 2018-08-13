@@ -13,7 +13,7 @@ app.post('/login', (req, res) => {
         // if (!profileSetUp){
             res.send(JSON.stringify({ firstLogin: false, userID: 2, sessionID: 1212}))
         // } else {
-        //     res.send(JSON.stringify({ userID: 2, sessionID: 1213, todaysBudget: dailyDisposable + rollover}))
+        //     res.send(JSON.stringify({ userID: 2, sessionID: 1213, todaysBudget: dailyDisposable}))
         // }
     } else {
         res.send(JSON.stringify({ loggedIn: false, reason: "no such user"}))
@@ -29,7 +29,7 @@ app.post('/signUp', (req, res) => {
     // "stretch": check that the username already exists?
     if (username && password){
         // store this information
-        let startDate = Date.now()
+        let signUpDate = Date.now()
         let userID = Math.floor(Math.random() * 10000)
         res.send({ signUp: true }) // don't really need to send anything
     } else {
@@ -73,25 +73,25 @@ app.post('/setUpFixed', (req, res) => {
 app.post('/inputVariable', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
     let spentAmount = parsedBody.amount
-    // get dailySpending from DB
-    // let dailySpending += spentAmount. Have a check to switch the sign 
+    // get todaysSpending from DB
+    // let todaysSpending += spentAmount. Have a check to switch the sign 
     // if it's an income instead of an expense?
-    let dailySpending = 10
-    res.send(JSON.stringify({ dailySpending: dailySpending })) // don't really need to send anything
+    let todaysSpending = 10
+    res.send(JSON.stringify({ todaysSpending: todaysSpending })) // don't really need to send anything
 })
 
 app.get('/getSavingsStatus', (req, res) => {
     let userID = req.query.userID
-    // check DB for savedAmount, goal amount
-    let savedAmount = 250
-    // send savedAmount AND goalAmount? where does the comparing happen?
-    res.send(JSON.stringify({ savedAmount: savedAmount}))
+    // check DB for savingsToDate, goal amount
+    let savingsToDate = 250
+    // send savingsToDatet AND goalAmount? where does the comparing happen?
+    res.send(JSON.stringify({ savingsToDate: savingsToDate}))
 })
 
 app.get('/todaysBudget', (req, res) => {
     let userID = req.query.userID
-    // check DB for dailyDisposable, rollover, dailySaveGoal, dailySpending
-    // todaysBudget = dailyDisposable + rollover - dailySpending
+    // check DB for dailyDisposable, todaysSpending, rollover
+    // todaysBudget = dailyDisposable - todaysSpending
     // reset rollover to 0
     let todaysBudget = 50
     res.send(JSON.stringify({ todaysBudget: todaysBudget}))
@@ -104,12 +104,16 @@ app.post('/endOfDay', (req, res) => {
     let savedAmount = parsedBody.savedAmount
     // rollover amount can be negative
     let rolloverAmount = parsedBody.rolloverAmount
-    // check DB for savingsProgress, let savingsProgress += savedAmount
+    // check DB for savingsToDate, let savingsToDate += savedAmount
     // assign rollover to rolloverAmount, let rollover = rolloverAmount
     // have a separate fetch to get alert messages, and have these just be flags?
     // if (savedAmount > dailySaveGoal) {res.send "Congrats on saving more than planned, keep it up!"}
     // if (rolloverAmount < 0) {res.send "Careful not to spend too much!"}
     res.send(JSON.stringify('end of day'))
 })
+
+app.get('/showTransactions')
+
+app.post('/deleteTransaction')
 
 app.listen(4000, console.log('listening on 4000'))
