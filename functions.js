@@ -53,12 +53,10 @@ function login(username, password, cb) {
                     cb(toSend)
                 }
             } else {
-                let msg = "wrong password"
-                cb ({msg})
+                cb({ loginFailed: true })
             }
         } else {
-            let msg = "no such user"
-            cb({msg})
+            cb({ loginFailed: true })
         }
     })
 }
@@ -88,7 +86,7 @@ function calculateDailySaveGoal(userID, goal, cb) {
             let daysInBetween = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
             let dailySaveGoal = Math.ceil(amount / daysInBetween)
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
-            cb( {dailySaveGoal})
+            cb({ dailySaveGoal })
             let update = { $set: { dailySaveGoal } }
             // stores the dailySaveGoal in the server, as a property of the user
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
@@ -100,11 +98,11 @@ function calculateDailySaveGoal(userID, goal, cb) {
 
 function storeFixed(userID, fixedExpense, fixedIncome, cb) {
     // find the user in the database
-    dbo.collection('users').findOne({ userID: userID}, (err, result) => {
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
-        if (result){
+        if (result) {
             // write the fixed income/expense to the database, change mustMakeFixedProfile to false
-            let update = { $set: { fixedExpense, fixedIncome, mustMakeFixedProfile: false }}
+            let update = { $set: { fixedExpense, fixedIncome, mustMakeFixedProfile: false } }
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
                 cb("fixed updated")
@@ -133,18 +131,62 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
             let dailyDisposable = Math.floor(monthlyDisposable / 30)
 
             cb({ dailyDisposable })
-            let update = { $set: { dailyDisposable }}
+            let update = { $set: { dailyDisposable } }
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
             })
 
-            
+
         }
     })
 }
 
-function calculateTodaysBudget(dailyDisposable, todaysSpending, rollover) {
-    return dailyDisposable - todaysSpending + rollover
+function calculateTodaysBudget(userID, cb) {
+    // because it's receiving the userID as a query, you have to switch it to an int
+    dbo.collection('users').findOne({ userID: parseInt(userID) }, (err, result) => {
+        if (err) throw err
+        if (result) {
+            let dailyDisposable = result.dailyDisposable
+            let todaysVariable;
+            (result.todaysVariable) ?
+                todaysVariable = result.todaysVariable :
+                todaysVariable = 0;
+            let rollover;
+            (result.rollover) ?
+                rollover = result.rollover :
+                rollover = 0;
+            let todaysBudget = dailyDisposable + rollover - todaysVariable
+            console.log(todaysBudget)
+            cb({ todaysBudget })
+        }
+
+    })
+}
+
+function storeExpense(userID, expense, cb){
+    dbo.collection('transactions').findOne({ userID: userID }, (err, result) => {
+        if (err) throw err
+        let update = { $set: {expense} }
+        if (result) {
+            // how to add another expense to a userID without overwriting the previous one?
+            dbo.collection('transactions').updateOne({ userID: userID}, update, (err, res) => {
+                if (err) throw err
+                cb('added to exisiting user')
+            })
+        } else {
+            dbo.collection('transactions').insertOne({ userID: userID }, (err, res) => {
+                if (err) throw err
+                dbo.collection('transactions').updateOne({ userID: userID}, update, (err, res) => {
+                    if (err) throw err
+                    cb('added to new user')
+                })
+            })
+        }
+    })
+}
+
+function updateTodaysBudget(userID, cb){
+
 }
 
 module.exports = {
@@ -154,5 +196,7 @@ module.exports = {
     storeGoal,
     calculateDailySaveGoal,
     storeFixed,
-    calculateDailyDisposable
+    calculateDailyDisposable,
+    calculateTodaysBudget,
+    storeExpense
 }

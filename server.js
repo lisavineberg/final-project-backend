@@ -43,7 +43,7 @@ app.post('/login', (req, res) => {
         })
 
     } else {
-        res.send(JSON.stringify({ loggedIn: false, reason: "you missed an input" }))
+        res.send(JSON.stringify({ loginFailed: true }))
     }
 })
 
@@ -112,14 +112,29 @@ returns >>> {"dailyDisposable" : 50}
     // "stretch": have a catch if the disposable is negative?
 })
 
+app.get('/todaysBudget', (req, res) => {
+    let userID = req.query.userID
+    // check DB for dailyDisposable, todaysSpending, rollover
+    // reset rollover to 0
+    functions.calculateTodaysBudget(userID, (result) => {
+        // returns { todaysBudget: 39}
+        res.send(JSON.stringify(result))
+    })
+    
+})
+
 app.post('/inputVariable', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
-    let spentAmount = parsedBody.amount
+    let userID = parsedBody.userID
+    let expense = parsedBody.expense
     // get todaysSpending from DB
     // let todaysSpending += spentAmount. Have a check to switch the sign 
+    functions.storeExpense(userID, expense, (result) => {
+        res.send(JSON.stringify(result))
+    })
     // if it's an income instead of an expense?
     let todaysSpending = 10
-    res.send(JSON.stringify({ todaysSpending: todaysSpending })) // don't really need to send anything
+    // res.send(JSON.stringify({ todaysSpending: todaysSpending })) // don't really need to send anything
 })
 
 app.get('/getSavingsStatus', (req, res) => {
@@ -128,15 +143,6 @@ app.get('/getSavingsStatus', (req, res) => {
     let savingsToDate = 250
     // send savingsToDatet AND goalAmount? where does the comparing happen?
     res.send(JSON.stringify({ savingsToDate: savingsToDate }))
-})
-
-app.get('/todaysBudget', (req, res) => {
-    let userID = req.query.userID
-    // check DB for dailyDisposable, todaysSpending, rollover
-    // let todaysBudget = functions.calculateTodaysBudget(dailyDisposable, todaysSpending, rollover)
-    // reset rollover to 0
-    let todaysBudget = 50
-    res.send(JSON.stringify({ todaysBudget: todaysBudget }))
 })
 
 app.post('/endOfDay', (req, res) => {

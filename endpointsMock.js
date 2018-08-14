@@ -83,14 +83,35 @@ app.post('/setUpGoal', (req, res) => {
 })
 
 app.post('/setUpFixed', (req, res) => {
+    /*
+expecting  >>> {
+userID: userID, 
+fixedExpense : {
+    rent: 800,
+    transport: 100,
+    health: 50,
+    other: 100
+},
+fixedIncome: {
+    type: biweekly, amount: 1000
+}
+}
+returns >>> {"dailyDisposable" : 50}
+*/
     let parsedBody = JSON.parse(req.body.toString())
-    // fixedExpense should be an object, {rent: 1000, loan: 50, transport: 80}
+    let userID = parsedBody.userID
     let fixedExpense = parsedBody.fixedExpense
-    // fixedIncome should be an object, {type: bi-weekly, amount: 800}
     let fixedIncome = parsedBody.fixedIncome
-    // let dailyDisposable = function.calculateDailyDisposable(fixedIncome, fixedExpense)
-    let dailyDisposable = 60
-    res.send(JSON.stringify({ dailyDisposable: dailyDisposable }))
+    // stores the information in the DB, nothing to send to frontend
+    functions.storeFixed(userID, fixedExpense, fixedIncome, (result) => {
+        console.log(result)
+    })
+    // calculates the dailydisposable amount
+    functions.calculateDailyDisposable(userID, fixedExpense, fixedIncome, (result) => {
+        console.log(result)
+        res.send(JSON.stringify(result))
+    })
+
     // "stretch": have a catch if the disposable is negative?
 })
 
