@@ -106,6 +106,10 @@ app.post('/endOfDay', (req, res) => {
 })
 
 app.get('/showWeek')
+/*
+need to get { day : { dailyDisposable : 100, todaysBudget: -15 }}. Push these days in to 
+a week array. Then have week.map(day => dailyDisposable : 100, todaysBudget : -15)
+*/
 
 // app.post('/deleteTransaction')
 

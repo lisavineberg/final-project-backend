@@ -7,7 +7,6 @@ let users = {
         // signUpDate will actually be a Date.now()
         signUpDate: "01/01/2018",
         firstLogin: false,
-        profileSetup: false,
         goal: {
             type: 'Travel',
             amount: 1000,
