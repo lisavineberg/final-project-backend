@@ -41,14 +41,14 @@ function login(username, password, cb) {
                     })
                     // send a result back to server (endpoint)
                     let toSend = {
-                        userID: result.userID, sessionID, makeGoalProfile: true, makeFixedProfile: true
+                        userID: result.userID, sessionID, mustMakeGoalProfile: true, mustMakeFixedProfile: true
                     }
                     cb(toSend)// and userID, and sessionID
                 } else {
                     // send a result back to server (endpoint)
                     let toSend = {
                         // will need to send dailyBudget
-                        userID: result.userID, sessionID, makeGoalProfile: false, makeFixedProfile: false
+                        userID: result.userID, sessionID
                     }
                     cb(toSend)
                 }
@@ -68,7 +68,7 @@ function storeGoal(userID, goal, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
-            let update = { $set: { goal, makeGoalProfile: false } }
+            let update = { $set: { goal, mustMakeGoalProfile: false } }
             // careful: overwrites whatever the goal is already, if there is one
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
@@ -98,26 +98,49 @@ function calculateDailySaveGoal(userID, goal, cb) {
     })
 }
 
-function calculateDailyDisposable(fixedIncome, fixedExpense) {
-    let monthlyIncome
-    if (fixedIncome.type === 'biweekly') {
-        monthlyIncome = (fixedIncome.amount / 14) * 30
-    }
-    if (fixedIncome.type === 'yearly') {
-        monthlyIncome = fixedIncome.amount / 12
-    }
-    let arrFixedExpenses = Object.values(fixedExpense)
-    let arrAsNumbers = []
-    for (let i = 0; i < arrFixedExpenses.length; i++) {
-        arrAsNumbers = arrAsNumbers.concat(Number(arrFixedExpenses[i]))
-    }
-    let sumFixedExp = 0
-    for (let i = 0; i < arrAsNumbers.length; i++) {
-        sumFixedExp += arrAsNumbers[i]
-    }
-    let monthlyDisposable = monthlyIncome - sumFixedExp
-    let dailyDisposable = monthlyDisposable / 30
-    return dailyDisposable
+function storeFixed(userID, fixedExpense, fixedIncome, cb) {
+    // find the user in the database
+    dbo.collection('users').findOne({ userID: userID}, (err, result) => {
+        if (err) throw err
+        if (result){
+            // write the fixed income/expense to the database, change mustMakeFixedProfile to false
+            let update = { $set: { fixedExpense, fixedIncome, mustMakeFixedProfile: false }}
+            dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
+                if (err) throw err
+                cb("fixed updated")
+            })
+        }
+    })
+}
+
+function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
+        if (err) throw err
+        if (result) {
+            let monthlyIncome;
+            if (fixedIncome.type === 'biweekly') {
+                monthlyIncome = (fixedIncome.amount / 14) * 30
+            }
+            if (fixedIncome.type === 'yearly') {
+                monthlyIncome = fixedIncome.amount / 12
+            }
+            let arrFixedExpenses = Object.values(fixedExpense)
+            let sumFixedExp = 0
+            for (let i = 0; i < arrFixedExpenses.length; i++) {
+                sumFixedExp += arrFixedExpenses[i]
+            }
+            let monthlyDisposable = monthlyIncome - sumFixedExp
+            let dailyDisposable = Math.floor(monthlyDisposable / 30)
+
+            cb({ dailyDisposable })
+            let update = { $set: { dailyDisposable }}
+            dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
+                if (err) throw err
+            })
+
+            
+        }
+    })
 }
 
 function calculateTodaysBudget(dailyDisposable, todaysSpending, rollover) {
@@ -129,5 +152,7 @@ module.exports = {
     signup,
     login,
     storeGoal,
-    calculateDailySaveGoal
+    calculateDailySaveGoal,
+    storeFixed,
+    calculateDailyDisposable
 }

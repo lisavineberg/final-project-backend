@@ -25,6 +25,10 @@ app.post('/signUp', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
+    /*
+ expecting >>>> {username: username, password: password}
+ returns >>> check Google Docs for options
+ */
     let parsedBody = JSON.parse(req.body.toString())
     let username = parsedBody.username
     let password = parsedBody.password
@@ -44,6 +48,18 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/setUpGoal', (req, res) => {
+    /*
+    expecting  >>> {
+        userID: userID, 
+        goal : {
+            type: "travel",
+            amount: 500,
+            endDate: "05/05/2019"
+        }
+    }
+    returns >>> {"dailySaveGoal" : 50}
+
+    */
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     let goal = parsedBody.goal
@@ -51,11 +67,11 @@ app.post('/setUpGoal', (req, res) => {
     let amount = goal.amount
     let endDate = goal.endDate; // prompt user to enter date in MM/DD/YYYY (have it as placeholder)
     // stores goal in DB. nothing to send to frontend
-    functions.storeGoal( userID,  {type, amount, endDate} , (result) => {
+    functions.storeGoal(userID, { type, amount, endDate }, (result) => {
         console.log("store goal ", result)
     })
     // calculates the dailySaveGoal and sends it to frontend as an object {"dailySaveGoal": 350}
-    functions.calculateDailySaveGoal(userID, {endDate, amount}, (result) => {
+    functions.calculateDailySaveGoal(userID, { endDate, amount }, (result) => {
         console.log(result)
         res.send(JSON.stringify(result))
     })
@@ -64,14 +80,35 @@ app.post('/setUpGoal', (req, res) => {
 })
 
 app.post('/setUpFixed', (req, res) => {
+    /*
+expecting  >>> {
+userID: userID, 
+fixedExpense : {
+    rent: 800,
+    transport: 100,
+    health: 50,
+    other: 100
+},
+fixedIncome: {
+    type: biweekly, amount: 1000
+}
+}
+returns >>> {"dailyDisposable" : 50}
+*/
     let parsedBody = JSON.parse(req.body.toString())
-    // fixedExpense should be an object, {rent: 1000, loan: 50, transport: 80}
+    let userID = parsedBody.userID
     let fixedExpense = parsedBody.fixedExpense
-    // fixedIncome should be an object, {type: bi-weekly, amount: 800}
     let fixedIncome = parsedBody.fixedIncome
-    // let dailyDisposable = function.calculateDailyDisposable(fixedIncome, fixedExpense)
-    let dailyDisposable = 60
-    res.send(JSON.stringify({ dailyDisposable: dailyDisposable }))
+    // stores the information in the DB, nothing to send to frontend
+    functions.storeFixed(userID, fixedExpense, fixedIncome, (result) => {
+        console.log(result)
+    })
+    // calculates the dailydisposable amount
+    functions.calculateDailyDisposable(userID, fixedExpense, fixedIncome, (result) => {
+        console.log(result)
+        res.send(JSON.stringify(result))
+    })
+
     // "stretch": have a catch if the disposable is negative?
 })
 
