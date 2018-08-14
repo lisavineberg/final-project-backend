@@ -45,15 +45,20 @@ app.post('/login', (req, res) => {
 
 app.post('/setUpGoal', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
-    let type = parsedBody.type
-    let amount = parsedBody.amount
-    // prompt user to enter date in MM/DD/YYYY (have it as placeholder)
-    let endDate = parsedBody.endDate
-    let endDateInMSec = Date.parse(endDate)
-    // would make a request to the server for the startDate. 
-    // let dailySaveGoal = functions.calculateDailySaveGoal(startDate, endDateInMSec, amount)
-    let dailySaveGoal = 10
-    res.send(JSON.stringify({ dailySaveGoal: dailySaveGoal }))
+    let userID = parsedBody.userID
+    let goal = parsedBody.goal
+    let type = goal.type
+    let amount = goal.amount
+    let endDate = goal.endDate; // prompt user to enter date in MM/DD/YYYY (have it as placeholder)
+    // stores goal in DB. nothing to send to frontend
+    functions.storeGoal( userID,  {type, amount, endDate} , (result) => {
+        console.log("store goal ", result)
+    })
+    // calculates the dailySaveGoal and sends it to frontend as an object {"dailySaveGoal": 350}
+    functions.calculateDailySaveGoal(userID, {endDate, amount}, (result) => {
+        console.log(result)
+        res.send(JSON.stringify(result))
+    })
     // if dailySaveGoal is too high or low, prompt for more realistic? Could
     // they still resubmit?
 })
