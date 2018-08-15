@@ -18,10 +18,9 @@ app.post('/signUp', (req, res) => {
     // "stretch": check that the username already exists?
     if (username && password) {
         functions.signup(username, password)
-        res.send({ signUp: true }) // don't really need to send anything
+        res.send(JSON.stringify({ signUp: true })) // don't really need to send anything
     } else {
-        // ex. front end can alert(parsedBody.message)
-        res.send(JSON.stringify({ signUp: false, message: "sign up failed" }))
+        res.send(JSON.stringify({ signUp: false }))
     }
 })
 
@@ -121,6 +120,7 @@ app.get('/todaysBudget', (req, res) => {
     let userID = req.query.userID
     // check DB for dailyDisposable, todaysVariable, rollover
     // reset rollover to 0
+    // send back dailySaveGoal?!
     functions.calculateTodaysBudget(userID, (result) => {
         // returns { todaysBudget: 39}
         res.send(JSON.stringify(result))
