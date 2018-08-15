@@ -8,6 +8,7 @@ app.use(bodyParser.raw({ type: '*/*' }))
 
 functions.setup(() => app.listen(4000, console.log('listening on 4000')))
 
+//works?
 app.post('/signUp', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
     let username = parsedBody.username
@@ -24,6 +25,7 @@ app.post('/signUp', (req, res) => {
     }
 })
 
+//works?
 app.post('/login', (req, res) => {
     /*
  expecting >>>> {username: username, password: password}
@@ -47,6 +49,7 @@ app.post('/login', (req, res) => {
     }
 })
 
+//works?
 app.post('/setUpGoal', (req, res) => {
     /*
     expecting  >>> {
@@ -79,6 +82,7 @@ app.post('/setUpGoal', (req, res) => {
     // they still resubmit?
 })
 
+//works?
 app.post('/setUpFixed', (req, res) => {
     /*
 expecting  >>> {
@@ -112,29 +116,31 @@ returns >>> {"dailyDisposable" : 50}
     // "stretch": have a catch if the disposable is negative?
 })
 
+//works?
 app.get('/todaysBudget', (req, res) => {
     let userID = req.query.userID
-    // check DB for dailyDisposable, todaysSpending, rollover
+    // check DB for dailyDisposable, todaysVariable, rollover
     // reset rollover to 0
     functions.calculateTodaysBudget(userID, (result) => {
         // returns { todaysBudget: 39}
         res.send(JSON.stringify(result))
     })
-    
+
 })
 
+//works?
 app.post('/inputVariable', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     let expense = parsedBody.expense
-    // get todaysSpending from DB
-    // let todaysSpending += spentAmount. Have a check to switch the sign 
+    // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         res.send(JSON.stringify(result))
     })
+    functions.updateTodaysBudget(userID, expense, (result) => {
+        res.send(JSON.stringify(result))
+    })
     // if it's an income instead of an expense?
-    let todaysSpending = 10
-    // res.send(JSON.stringify({ todaysSpending: todaysSpending })) // don't really need to send anything
 })
 
 app.get('/getSavingsStatus', (req, res) => {

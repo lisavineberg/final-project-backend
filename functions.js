@@ -148,35 +148,50 @@ function calculateTodaysBudget(userID, cb) {
         if (result) {
             let dailyDisposable = result.dailyDisposable
             let todaysVariable;
+            // if the user doesn't have a todaysVariable yet, set it to zero
             (result.todaysVariable) ?
                 todaysVariable = result.todaysVariable :
                 todaysVariable = 0;
             let rollover;
+            // if the user doesn't have a rollover yet, set it to zero
             (result.rollover) ?
                 rollover = result.rollover :
                 rollover = 0;
             let todaysBudget = dailyDisposable + rollover - todaysVariable
-            console.log(todaysBudget)
             cb({ todaysBudget })
+            let update = { $set: { todaysBudget: todaysBudget } }
+            // updates todaysBudget in the users DB
+            dbo.collection('users').updateOne({ userID: parseInt(userID) }, update, (err, res) => {
+                if (err) throw err
+                console.log('todays budget updated')
+            })
         }
 
     })
 }
 
-function storeExpense(userID, expense, cb){
+function storeExpense(userID, expense, cb) {
     dbo.collection('transactions').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
-        let update = { $set: {expense} }
+        // if the user exists in the transactions DB already
         if (result) {
-            // how to add another expense to a userID without overwriting the previous one?
-            dbo.collection('transactions').updateOne({ userID: userID}, update, (err, res) => {
+            // make an array out of their current transactions
+            let newArr = [result.expense]
+            // add the new expense to the array
+            newArr = newArr.concat(expense)
+            // update the DB
+            let update = { $set: { expense: newArr } }
+            dbo.collection('transactions').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
                 cb('added to exisiting user')
             })
+            // if the user hasn't made a transaction yet
         } else {
             dbo.collection('transactions').insertOne({ userID: userID }, (err, res) => {
                 if (err) throw err
-                dbo.collection('transactions').updateOne({ userID: userID}, update, (err, res) => {
+                // add the new user to the DB as well as their transaction
+                let update = { $set: { expense } }
+                dbo.collection('transactions').updateOne({ userID: userID }, update, (err, res) => {
                     if (err) throw err
                     cb('added to new user')
                 })
@@ -185,8 +200,24 @@ function storeExpense(userID, expense, cb){
     })
 }
 
-function updateTodaysBudget(userID, cb){
+function updateTodaysBudget(userID, expense, cb) {
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
+        if (err) throw err
+        if (result) {
+            let expenseAmount = expense.amount
+            let newTodaysVariable;
+            (result.todaysVariable) ?
+                newTodaysVariable = expenseAmount + result.todaysVariable :
+                newTodaysVariable = expenseAmount;
+            let newTodaysBudget = result.todaysBudget - expenseAmount
+            let update = { $set: { todaysBudget: newTodaysBudget, todaysVariable: newTodaysVariable } }
+            dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
+                if (err) throw err
+                console.log("budget and variable updated")
+            })
 
+        }
+    })
 }
 
 module.exports = {
@@ -198,5 +229,6 @@ module.exports = {
     storeFixed,
     calculateDailyDisposable,
     calculateTodaysBudget,
-    storeExpense
+    storeExpense,
+    updateTodaysBudget
 }

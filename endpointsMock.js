@@ -164,5 +164,3 @@ a week array. Then have week.map(day => dailyDisposable : 100, todaysBudget : -1
 */
 
 // app.post('/deleteTransaction')
-
-app.listen(4000, console.log('listening on 4000'))
