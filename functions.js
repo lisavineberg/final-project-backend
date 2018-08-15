@@ -40,10 +40,15 @@ function login(username, password, cb) {
                         console.log("one property updated")
                     })
                     // send a result back to server (endpoint)
+                    // store this too??
                     let toSend = {
                         userID: result.userID, sessionID, mustMakeGoalProfile: true, mustMakeFixedProfile: true
                     }
                     cb(toSend)// and userID, and sessionID
+                    let otherUpdate = { $set :{ mustMakeGoalProfile: true, mustMakeFixedProfile: true }}
+                    dbo.collection('users').updateOne({ userID: result.userID}, otherUpdate, (err, res) => {
+                        if (err) throw err
+                    })
                 } else {
                     // send a result back to server (endpoint)
                     let toSend = {
@@ -146,7 +151,6 @@ function calculateTodaysBudget(userID, cb) {
     dbo.collection('users').findOne({ userID: parseInt(userID) }, (err, result) => {
         if (err) throw err
         if (result) {
-            let dailyDisposable = result.dailyDisposable
             let todaysVariable;
             // if the user doesn't have a todaysVariable yet, set it to zero
             (result.todaysVariable) ?
@@ -157,9 +161,17 @@ function calculateTodaysBudget(userID, cb) {
             (result.rollover) ?
                 rollover = result.rollover :
                 rollover = 0;
-            let todaysBudget = dailyDisposable + rollover - todaysVariable
-            cb({ todaysBudget })
-            let update = { $set: { todaysBudget: todaysBudget } }
+            let updatedBudget;
+            // if the user has already updated their budget, set it to the most recent (todaysBudget)
+            // otherwise, set to the dailyDisposable
+            (result.todaysBudget) ?
+                updatedBudget = result.todaysBudget :
+                updatedBudget = result.dailyDisposable
+            // modify the budget as necessary
+            updatedBudget = updatedBudget + rollover - todaysVariable
+            cb({ todaysBudget: updatedBudget })
+            // reset todaysVariable and rollover to zero once they've been accounted for in the budget
+            let update = { $set: { todaysBudget: updatedBudget, todaysVariable: 0, rollover: 0 } }
             // updates todaysBudget in the users DB
             dbo.collection('users').updateOne({ userID: parseInt(userID) }, update, (err, res) => {
                 if (err) throw err
@@ -176,9 +188,10 @@ function storeExpense(userID, expense, cb) {
         // if the user exists in the transactions DB already
         if (result) {
             // make an array out of their current transactions
-            let newArr = [result.expense]
+            let newArr = result.expense
             // add the new expense to the array
             newArr = newArr.concat(expense)
+            // newArr = newArr.flat()
             // update the DB
             let update = { $set: { expense: newArr } }
             dbo.collection('transactions').updateOne({ userID: userID }, update, (err, res) => {
@@ -190,7 +203,7 @@ function storeExpense(userID, expense, cb) {
             dbo.collection('transactions').insertOne({ userID: userID }, (err, res) => {
                 if (err) throw err
                 // add the new user to the DB as well as their transaction
-                let update = { $set: { expense } }
+                let update = { $set: { expense: [expense] } }
                 dbo.collection('transactions').updateOne({ userID: userID }, update, (err, res) => {
                     if (err) throw err
                     cb('added to new user')
@@ -200,7 +213,7 @@ function storeExpense(userID, expense, cb) {
     })
 }
 
-function updateTodaysBudget(userID, expense, cb) {
+function updateTodaysVariable(userID, expense, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
@@ -209,11 +222,17 @@ function updateTodaysBudget(userID, expense, cb) {
             (result.todaysVariable) ?
                 newTodaysVariable = expenseAmount + result.todaysVariable :
                 newTodaysVariable = expenseAmount;
-            let newTodaysBudget = result.todaysBudget - expenseAmount
-            let update = { $set: { todaysBudget: newTodaysBudget, todaysVariable: newTodaysVariable } }
+            // only update the budget in /todaysBudget, when you call calculateTodaysBudget?
+            // let newTodaysBudget = result.todaysBudget - expenseAmount
+            let update = {
+                $set: {
+                    // todaysBudget: newTodaysBudget, 
+                    todaysVariable: newTodaysVariable
+                }
+            }
+            // cb("variable updated")
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
-                console.log("budget and variable updated")
             })
 
         }
@@ -230,5 +249,5 @@ module.exports = {
     calculateDailyDisposable,
     calculateTodaysBudget,
     storeExpense,
-    updateTodaysBudget
+    updateTodaysVariable
 }

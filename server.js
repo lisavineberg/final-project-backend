@@ -130,6 +130,15 @@ app.get('/todaysBudget', (req, res) => {
 
 //works?
 app.post('/inputVariable', (req, res) => {
+    /*
+expecting  >>> {
+userID: userID, 
+expense : {
+    type: food,
+    amount: 10,
+}}
+returns >>> nothing really?
+*/
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     let expense = parsedBody.expense
@@ -137,10 +146,12 @@ app.post('/inputVariable', (req, res) => {
     functions.storeExpense(userID, expense, (result) => {
         res.send(JSON.stringify(result))
     })
-    functions.updateTodaysBudget(userID, expense, (result) => {
+    functions.updateTodaysVariable(userID, expense, (result) => {
         res.send(JSON.stringify(result))
     })
-    // if it's an income instead of an expense?
+    // call?? functions.calculateTodaysBudget(userID, (result) => {
+    // res.send(result)
+    // })
 })
 
 app.get('/getSavingsStatus', (req, res) => {
