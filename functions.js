@@ -152,7 +152,7 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
 
 function calculateTodaysBudget(userID, cb) {
     // because it's receiving the userID as a query, you have to switch it to an int
-    dbo.collection('users').findOne({ userID: parseInt(userID) }, (err, result) => {
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
             let todaysVariable;
@@ -177,7 +177,7 @@ function calculateTodaysBudget(userID, cb) {
             // reset todaysVariable and rollover to zero once they've been accounted for in the budget
             let update = { $set: { todaysBudget: updatedBudget, todaysVariable: 0, rollover: 0 } }
             // updates todaysBudget in the users DB
-            dbo.collection('users').updateOne({ userID: parseInt(userID) }, update, (err, res) => {
+            dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
                 console.log('todays budget updated')
             })
@@ -221,7 +221,7 @@ function updateTodaysVariable(userID, expense, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
-            let expenseAmount = expense.amount
+            let expenseAmount = parseFloat(expense.amount)
             let newTodaysVariable;
             (result.todaysVariable) ?
                 newTodaysVariable = expenseAmount + result.todaysVariable :
@@ -299,6 +299,19 @@ function storeRecord(userID, cb) {
     })
 }
 
+function getProgressAndTodaysInfo (userID, cb) {
+    dbo.collection('users').findOne({ userID: userID}, (err, result) =>{
+        if (err) throw err
+        if (result) {
+            let savingsToDate = result.savingsToDate
+            let todaysBudget = result.todaysBudget
+            let goalAmount = result.goal.amount
+            let toSend = { savingsToDate, todaysBudget, goalAmount }
+            cb(toSend)
+
+        }
+    })
+}
 
 module.exports = {
     setup,
@@ -312,5 +325,6 @@ module.exports = {
     storeExpense,
     updateTodaysVariable,
     endOfDay,
-    storeRecord
+    storeRecord,
+    getProgressAndTodaysInfo
 }

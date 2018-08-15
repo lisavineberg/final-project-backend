@@ -66,8 +66,8 @@ app.post('/setUpGoal', (req, res) => {
     let userID = parsedBody.userID
     let goal = parsedBody.goal
     let type = goal.type
-    let amount = goal.amount
-    let endDate = goal.endDate; // prompt user to enter date in MM/DD/YYYY (have it as placeholder)
+    let amount = parseFloat(goal.amount)
+    let endDate = goal.endDate; 
     // stores goal in DB. nothing to send to frontend
     functions.storeGoal(userID, { type, amount, endDate }, (result) => {
         console.log("store goal ", result)
@@ -117,7 +117,7 @@ returns >>> {"dailyDisposable" : 50}
 
 //works?
 app.get('/todaysBudget', (req, res) => {
-    let userID = req.query.userID
+    let userID = parseInt(req.query.userID)
     // check DB for dailyDisposable, todaysVariable, rollover
     // reset rollover to 0
     // send back dailySaveGoal?!
@@ -165,13 +165,13 @@ savedAmount: 10
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     // saved amount must be >= 0. 
-    let savedAmount = parsedBody.savedAmount
+    let savedAmount = parseFloat(parsedBody.savedAmount)
     // rollover amount can be negative
-    let rolloverAmount = parsedBody.rolloverAmount
+    let rolloverAmount = parseFloat(parsedBody.rolloverAmount)
 
     functions.endOfDay(userID, savedAmount, rolloverAmount, (result) => {
        // result: successfully ended day
-        res.send(result)
+        res.send(JSON.stringify(result))
     })
 
     functions.storeRecord(userID, (result)=> {
@@ -188,11 +188,12 @@ savedAmount: 10
 })
 
 app.get('/getSavingsStatus', (req, res) => {
-    let userID = req.query.userID
+    let userID = parseInt(req.query.userID)
+    functions.getProgressAndTodaysInfo(userID, (result) =>{
+        console.log(result)
+        res.send(JSON.stringify(result))
+    })
     // check DB for savingsToDate, goal amount
-    let savingsToDate = 250
-    // send savingsToDatet AND goalAmount? where does the comparing happen?
-    res.send(JSON.stringify({ savingsToDate: savingsToDate }))
 })
 
 app.get('/showWeek')
