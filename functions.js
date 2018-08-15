@@ -128,9 +128,13 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
                 monthlyIncome = fixedIncome.amount / 12
             }
             let arrFixedExpenses = Object.values(fixedExpense)
+            let arrAsNumbers = []
+            for (let i = 0; i < arrFixedExpenses.length; i++){
+                arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i]))
+            }
             let sumFixedExp = 0
-            for (let i = 0; i < arrFixedExpenses.length; i++) {
-                sumFixedExp += arrFixedExpenses[i]
+            for (let i = 0; i < arrAsNumbers.length; i++) {
+                sumFixedExp += arrAsNumbers[i]
             }
             let monthlyDisposable = monthlyIncome - sumFixedExp
             let dailyDisposable = Math.floor(monthlyDisposable / 30)
@@ -239,6 +243,49 @@ function updateTodaysVariable(userID, expense, cb) {
     })
 }
 
+function endOfDay(userID, savedAmount, rolloverAmount, cb) {
+dbo.collection('users').findOne({ userID: userID }, (err, result) => {
+    if (err) throw err
+    if (result) {
+        let savingsToDate;
+        (result.savingsToDate) ?
+        savingsToDate = result.savingsToDate :
+        savingsToDate = 0;
+        savingsToDate += savedAmount
+        cb("success")
+        let update = { $set : { savingsToDate: savingsToDate, rollover: rolloverAmount, todaysBudget: 0}}
+        dbo.collection('users').updateOne({ userID: userID}, update, (err, res) => {
+            if (err) throw err
+        })
+    }
+})
+}
+
+function storeRecord(userID){
+    let dailyDisposable;
+    let todaysBudget;
+    dbo.collection('users').findOne({ userID: userID }, (err, res) => {
+        if (err) throw err
+        if (res) {
+            dailyDisposable = res.dailyDisposable;
+            todaysBudget = res.todaysBudget
+        }
+    })
+    dbo.collection('records').findOne({userID: userID}, (err, result) => {
+        if (err) throw err
+        if (result) {
+
+        } else {
+            dbo.collection('records').insertOne({ userID: userID}, (err, res) => {
+                if (err) throw err
+                let update = { $set: { record : [ dailyDisposable, todaysBudget ] }}             
+             })
+            
+        }
+    })
+}
+
+
 module.exports = {
     setup,
     signup,
@@ -249,5 +296,6 @@ module.exports = {
     calculateDailyDisposable,
     calculateTodaysBudget,
     storeExpense,
-    updateTodaysVariable
+    updateTodaysVariable,
+    endOfDay
 }

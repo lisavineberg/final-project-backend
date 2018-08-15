@@ -154,27 +154,39 @@ returns >>> nothing really?
     // })
 })
 
+app.post('/endOfDay', (req, res) => {
+    /*
+expecting  >>> {
+userID: userID, 
+rolloverAmount: 10,
+savedAmount: 10
+}
+*/
+    let parsedBody = JSON.parse(req.body.toString())
+    let userID = parsedBody.userID
+    // saved amount must be >= 0. 
+    let savedAmount = parsedBody.savedAmount
+    // rollover amount can be negative
+    let rolloverAmount = parsedBody.rolloverAmount
+
+    functions.endOfDay(userID, savedAmount, rolloverAmount, (result) => {
+       res.send(result)
+    })
+
+    // check DB for savingsToDate, let savingsToDate += savedAmount
+    // assign rollover to rolloverAmount, let rollover = rolloverAmount
+    // have a separate fetch to get alert messages, and have these just be flags?
+    // if (savedAmount > dailySaveGoal) {res.send "Congrats on saving more than planned, keep it up!"}
+    // if (rolloverAmount < 0) {res.send "Careful not to spend too much!"}
+    // res.send(JSON.stringify('end of day'))
+})
+
 app.get('/getSavingsStatus', (req, res) => {
     let userID = req.query.userID
     // check DB for savingsToDate, goal amount
     let savingsToDate = 250
     // send savingsToDatet AND goalAmount? where does the comparing happen?
     res.send(JSON.stringify({ savingsToDate: savingsToDate }))
-})
-
-app.post('/endOfDay', (req, res) => {
-
-    let parsedBody = JSON.parse(req.body.toString())
-    // saved amount must be >= 0. 
-    let savedAmount = parsedBody.savedAmount
-    // rollover amount can be negative
-    let rolloverAmount = parsedBody.rolloverAmount
-    // check DB for savingsToDate, let savingsToDate += savedAmount
-    // assign rollover to rolloverAmount, let rollover = rolloverAmount
-    // have a separate fetch to get alert messages, and have these just be flags?
-    // if (savedAmount > dailySaveGoal) {res.send "Congrats on saving more than planned, keep it up!"}
-    // if (rolloverAmount < 0) {res.send "Careful not to spend too much!"}
-    res.send(JSON.stringify('end of day'))
 })
 
 app.get('/showWeek')
