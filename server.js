@@ -144,10 +144,10 @@ returns >>> nothing really?
     let expense = parsedBody.expense
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
-        res.send(JSON.stringify(result))
+        console.log(result)
     })
     functions.updateTodaysVariable(userID, expense, (result) => {
-        res.send(JSON.stringify(result))
+        console.log(result)
     })
     // call?? functions.calculateTodaysBudget(userID, (result) => {
     // res.send(result)
@@ -170,7 +170,13 @@ savedAmount: 10
     let rolloverAmount = parsedBody.rolloverAmount
 
     functions.endOfDay(userID, savedAmount, rolloverAmount, (result) => {
-       res.send(result)
+       // result: successfully ended day
+        res.send(result)
+    })
+
+    functions.storeRecord(userID, (result)=> {
+        // result: added to exisiting user/added to new user
+        console.log(result)
     })
 
     // check DB for savingsToDate, let savingsToDate += savedAmount
@@ -198,4 +204,3 @@ a week array. Then have week.map(day => dailyDisposable : 100, todaysBudget : -1
 app.get('/getDate')
 
 // app.post('/deleteTransaction')
-

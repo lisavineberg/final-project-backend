@@ -45,8 +45,8 @@ function login(username, password, cb) {
                         userID: result.userID, sessionID, mustMakeGoalProfile: true, mustMakeFixedProfile: true
                     }
                     cb(toSend)// and userID, and sessionID
-                    let otherUpdate = { $set :{ mustMakeGoalProfile: true, mustMakeFixedProfile: true }}
-                    dbo.collection('users').updateOne({ userID: result.userID}, otherUpdate, (err, res) => {
+                    let otherUpdate = { $set: { mustMakeGoalProfile: true, mustMakeFixedProfile: true } }
+                    dbo.collection('users').updateOne({ userID: result.userID }, otherUpdate, (err, res) => {
                         if (err) throw err
                     })
                 } else {
@@ -122,14 +122,14 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
         if (result) {
             let monthlyIncome;
             if (fixedIncome.type === 'biweekly') {
-                monthlyIncome = (fixedIncome.amount / 14) * 30
+                monthlyIncome = (parseFloat(fixedIncome.amount) / 14) * 30
             }
             if (fixedIncome.type === 'yearly') {
-                monthlyIncome = fixedIncome.amount / 12
+                monthlyIncome = parseFloat(fixedIncome.amount) / 12
             }
             let arrFixedExpenses = Object.values(fixedExpense)
             let arrAsNumbers = []
-            for (let i = 0; i < arrFixedExpenses.length; i++){
+            for (let i = 0; i < arrFixedExpenses.length; i++) {
                 arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i]))
             }
             let sumFixedExp = 0
@@ -244,43 +244,57 @@ function updateTodaysVariable(userID, expense, cb) {
 }
 
 function endOfDay(userID, savedAmount, rolloverAmount, cb) {
-dbo.collection('users').findOne({ userID: userID }, (err, result) => {
-    if (err) throw err
-    if (result) {
-        let savingsToDate;
-        (result.savingsToDate) ?
-        savingsToDate = result.savingsToDate :
-        savingsToDate = 0;
-        savingsToDate += savedAmount
-        cb("success")
-        let update = { $set : { savingsToDate: savingsToDate, rollover: rolloverAmount, todaysBudget: 0}}
-        dbo.collection('users').updateOne({ userID: userID}, update, (err, res) => {
-            if (err) throw err
-        })
-    }
-})
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
+        if (err) throw err
+        if (result) {
+            let savingsToDate;
+            (result.savingsToDate) ?
+                savingsToDate = result.savingsToDate :
+                savingsToDate = 0;
+            savingsToDate += savedAmount
+            cb("successfully ended day")
+            let update = { $set: { savingsToDate: savingsToDate, rollover: rolloverAmount, todaysBudget: 0 } }
+            dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
+                if (err) throw err
+            })
+        }
+    })
 }
 
-function storeRecord(userID){
+function storeRecord(userID, cb) {
     let dailyDisposable;
     let todaysBudget;
+    let date = Date()
+    let record = {};
     dbo.collection('users').findOne({ userID: userID }, (err, res) => {
         if (err) throw err
         if (res) {
             dailyDisposable = res.dailyDisposable;
             todaysBudget = res.todaysBudget
-        }
-    })
-    dbo.collection('records').findOne({userID: userID}, (err, result) => {
-        if (err) throw err
-        if (result) {
+            record = { dailyDisposable, todaysBudget, date }
 
-        } else {
-            dbo.collection('records').insertOne({ userID: userID}, (err, res) => {
+            dbo.collection('records').findOne({ userID: userID }, (err, result) => {
                 if (err) throw err
-                let update = { $set: { record : [ dailyDisposable, todaysBudget ] }}             
-             })
-            
+                if (result) {
+                    let newArr = result.record
+                    newArr = newArr.concat(record)
+                    let update = { $set: { record: newArr } }
+                    dbo.collection('records').updateOne({ userID: userID }, update, (err, res) => {
+                        if (err) throw err
+                        cb('added to existing user')
+                    })
+                } else {
+                    dbo.collection('records').insertOne({ userID: userID }, (err, res) => {
+                        if (err) throw err
+                        console.log(record)
+                        let update = { $set: { record: [record] } }
+                        dbo.collection('records').updateOne({ userID: userID }, update, (err, res) => {
+                            if (err) throw err
+                            cb('added to new user')
+                        })
+                    })
+                }
+            })
         }
     })
 }
@@ -297,5 +311,6 @@ module.exports = {
     calculateTodaysBudget,
     storeExpense,
     updateTodaysVariable,
-    endOfDay
+    endOfDay,
+    storeRecord
 }
