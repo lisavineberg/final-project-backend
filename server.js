@@ -146,9 +146,11 @@ returns >>> nothing really?
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         console.log(result)
+        
     })
     functions.updateTodaysVariable(userID, expense, (result) => {
         console.log(result)
+        res.send(JSON.stringify(result))
     })
     // call?? functions.calculateTodaysBudget(userID, (result) => {
     // res.send(result)
