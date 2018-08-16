@@ -93,10 +93,12 @@ function calculateDailySaveGoal(userID, goal, cb) {
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
             
             if (dailySaveGoal < 5) {
-                cb({ dailySaveGoal, msg: "aim for something higher?"})
-            } else if (dailySaveGoal)
-            
-            cb({ dailySaveGoal })
+                cb({ dailySaveGoal, unrealistic: true })
+            } else if (dailySaveGoal > 50 ){
+                cb(({ dailySaveGoal, unrealistic: true}))
+            } else {
+                cb({ dailySaveGoal })
+            }
             let update = { $set: { dailySaveGoal } }
             // stores the dailySaveGoal in the server, as a property of the user
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
