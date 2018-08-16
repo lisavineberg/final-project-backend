@@ -53,7 +53,7 @@ function login(username, password, cb) {
                     // send a result back to server (endpoint)
                     let toSend = {
                         // will need to send dailyBudget
-                        userID: result.userID, sessionID
+                        userID: result.userID, sessionID, dailySaveGoal: result.dailySaveGoal
                     }
                     cb(toSend)
                 }
@@ -242,7 +242,7 @@ function updateTodaysVariable(userID, expense, cb) {
                     todaysVariable: newTodaysVariable
                 }
             }
-            // cb("variable updated")
+            cb("variable updated")
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
             })
