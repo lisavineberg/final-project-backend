@@ -311,8 +311,14 @@ function getProgressAndTodaysInfo (userID, cb) {
     dbo.collection('users').findOne({ userID: userID}, (err, result) =>{
         if (err) throw err
         if (result) {
-            let savingsToDate = result.savingsToDate
-            let todaysBudget = result.todaysBudget
+            let savingsToDate;
+            (result.savingsToDate) ?
+            savingsToDate = result.savingsToDate :
+            savingsToDate = 0
+            let todaysBudget;
+            (result.todaysBudget) ?
+            todaysBudget = result.todaysBudget :
+            todaysBudget = result.dailyDisposable 
             let goalAmount = result.goal.amount
             let toSend = { savingsToDate, todaysBudget, goalAmount }
             cb(toSend)
