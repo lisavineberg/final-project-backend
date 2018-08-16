@@ -151,10 +151,8 @@ returns >>> nothing really?
     functions.updateTodaysVariable(userID, expense, (result) => {
         console.log(result)
         res.send(JSON.stringify(result))
+        // res.send(JSON.stringify(result))
     })
-    // call?? functions.calculateTodaysBudget(userID, (result) => {
-    // res.send(result)
-    // })
 })
 
 app.post('/endOfDay', (req, res) => {
@@ -173,7 +171,7 @@ savedAmount: 10
     let rolloverAmount = parseFloat(parsedBody.rolloverAmount)
 
     functions.endOfDay(userID, savedAmount, rolloverAmount, (result) => {
-       // result: successfully ended day
+       console.log(result)
         res.send(JSON.stringify(result))
     })
 
