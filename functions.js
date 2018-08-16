@@ -33,20 +33,14 @@ function login(username, password, cb) {
             if (result.password === sha256(password)) {
                 // checks if firstLogin is set to true (if it *is* first login)
                 if (result.firstLogin) {
-                    // next five lines updates firstLogin
-                    let update = { $set: { firstLogin: !result.firstLogin } };
-                    dbo.collection('users').updateOne({ username: username }, update, (err, res) => {
-                        if (err) throw err
-                        console.log("one property updated")
-                    })
                     // send a result back to server (endpoint)
                     // store this too??
                     let toSend = {
                         userID: result.userID, sessionID, mustMakeGoalProfile: true, mustMakeFixedProfile: true
                     }
                     cb(toSend)// and userID, and sessionID
-                    let otherUpdate = { $set: { mustMakeGoalProfile: true, mustMakeFixedProfile: true } }
-                    dbo.collection('users').updateOne({ userID: result.userID }, otherUpdate, (err, res) => {
+                    let update = { $set: { firstLogin: !result.firstLogin, mustMakeGoalProfile: true, mustMakeFixedProfile: true } }
+                    dbo.collection('users').updateOne({ userID: result.userID }, update, (err, res) => {
                         if (err) throw err
                     })
                 } else {
