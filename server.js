@@ -142,6 +142,7 @@ returns >>> nothing really?
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     let expense = parsedBody.expense
+    expense.date = Date()
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         console.log(result)

@@ -91,6 +91,11 @@ function calculateDailySaveGoal(userID, goal, cb) {
             let daysInBetween = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
             let dailySaveGoal = Math.ceil(amount / daysInBetween)
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
+            
+            if (dailySaveGoal < 5) {
+                cb({ dailySaveGoal, msg: "aim for something higher?"})
+            } else if (dailySaveGoal)
+            
             cb({ dailySaveGoal })
             let update = { $set: { dailySaveGoal } }
             // stores the dailySaveGoal in the server, as a property of the user
@@ -130,7 +135,8 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
             let arrFixedExpenses = Object.values(fixedExpense)
             let arrAsNumbers = []
             for (let i = 0; i < arrFixedExpenses.length; i++) {
-                arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i]))
+                if (arrFixedExpenses[i] !== "")
+               { arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i]))}
             }
             let sumFixedExp = 0
             for (let i = 0; i < arrAsNumbers.length; i++) {
