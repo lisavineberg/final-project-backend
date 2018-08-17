@@ -117,11 +117,11 @@ function calculateDailySaveGoal(userID, goal, cb) {
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
 
             if (dailySaveGoal < 5) {
-                cb({ dailySaveGoal, unrealistic: true })
+                cb({ dailySaveGoal, unrealistic: true, mustMakeFixedProfile: result.mustMakeFixedProfile })
             } else if (dailySaveGoal > 50) {
-                cb(({ dailySaveGoal, unrealistic: true }))
+                cb(({ dailySaveGoal, unrealistic: true, mustMakeFixedProfile: result.mustMakeFixedProfile }))
             } else {
-                cb({ dailySaveGoal })
+                cb({ dailySaveGoal, mustMakeFixedProfile: result.mustMakeFixedProfile })
             }
             let update = { $set: { dailySaveGoal } }
             // stores the dailySaveGoal in the server, as a property of the user
