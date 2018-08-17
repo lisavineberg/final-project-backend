@@ -67,7 +67,7 @@ app.post('/setUpGoal', (req, res) => {
     let goal = parsedBody.goal
     let type = goal.type
     let amount = parseFloat(goal.amount)
-    let endDate = goal.endDate; 
+    let endDate = goal.endDate;
     // stores goal in DB. nothing to send to frontend
     functions.storeGoal(userID, { type, amount, endDate }, (result) => {
         console.log("store goal ", result)
@@ -146,7 +146,7 @@ returns >>> nothing really?
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         console.log(result)
-        
+
     })
     functions.updateTodaysVariable(userID, expense, (result) => {
         console.log(result)
@@ -171,11 +171,11 @@ savedAmount: 10
     let rolloverAmount = parseFloat(parsedBody.rolloverAmount)
 
     functions.endOfDay(userID, savedAmount, rolloverAmount, (result) => {
-       console.log(result)
+        console.log(result)
         res.send(JSON.stringify(result))
     })
 
-    functions.storeRecord(userID, (result)=> {
+    functions.storeRecord(userID, (result) => {
         // result: added to exisiting user/added to new user
         console.log(result)
     })
@@ -190,7 +190,7 @@ savedAmount: 10
 
 app.get('/getSavingsStatus', (req, res) => {
     let userID = parseInt(req.query.userID)
-    functions.getProgressAndTodaysInfo(userID, (result) =>{
+    functions.getProgressAndTodaysInfo(userID, (result) => {
         console.log(result)
         res.send(JSON.stringify(result))
     })

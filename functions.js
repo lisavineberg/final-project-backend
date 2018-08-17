@@ -51,13 +51,13 @@ function login(username, password, cb) {
                 //     }
                 //     cb(toSend)
                 // }
-           
-                if (result.mustMakeGoalProfile){
+
+                if (result.mustMakeGoalProfile) {
                     let toSend = {
                         userID: result.userID, mustMakeGoalProfile: true, mustMakeFixedProfile: true
                     }
                     cb(toSend)
-                } else if (result.mustMakeFixedProfile){
+                } else if (result.mustMakeFixedProfile) {
                     let toSend = {
                         userID: result.userID, dailySaveGoal: result.dailySaveGoal, mustMakeFixedProfile: true
                     }
@@ -65,18 +65,22 @@ function login(username, password, cb) {
                 } else {
                     let todaysBudget;
                     (result.todaysBudget) ?
-                    todaysBudget = result.todaysBudget :
-                    todaysBudget = result.dailyDisposable
+                        todaysBudget = result.todaysBudget :
+                        todaysBudget = result.dailyDisposable
                     let todaysVariable;
                     (result.todaysVariable) ?
-                    todaysVariable = result.todaysVariable :
-                    todaysVariable = 0
+                        todaysVariable = result.todaysVariable :
+                        todaysVariable = 0
+                    let startOfDayBudget;
+                    (result.startOfDayBudget)?
+                        startOfDayBudget = result.startOfDayBudget :
+                        startOfDayBudget = result.dailyDisposable
                     let toSend = {
                         userID: result.userID, dailySaveGoal: result.dailySaveGoal, todaysBudget, todaysVariable
                     }
                     cb(toSend)
                 }
-           
+
             } else {
                 cb({ loginFailed: true })
             }
@@ -111,11 +115,11 @@ function calculateDailySaveGoal(userID, goal, cb) {
             let daysInBetween = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
             let dailySaveGoal = Math.ceil(amount / daysInBetween)
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
-            
+
             if (dailySaveGoal < 5) {
                 cb({ dailySaveGoal, unrealistic: true })
-            } else if (dailySaveGoal > 50 ){
-                cb(({ dailySaveGoal, unrealistic: true}))
+            } else if (dailySaveGoal > 50) {
+                cb(({ dailySaveGoal, unrealistic: true }))
             } else {
                 cb({ dailySaveGoal })
             }
@@ -154,14 +158,13 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
             if (fixedIncome.type === 'yearly') {
                 monthlyIncome = parseFloat(fixedIncome.amount) / 12
             }
-            if (fixedIncome.type === 'monthly'){
-                monthlyIncome === parseFloat(fixedIncome.amount)
+            if (fixedIncome.type === 'monthly') {
+                monthlyIncome = parseFloat(fixedIncome.amount)
             }
             let arrFixedExpenses = Object.values(fixedExpense)
             let arrAsNumbers = []
             for (let i = 0; i < arrFixedExpenses.length; i++) {
-                if (arrFixedExpenses[i] !== "")
-               { arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i]))}
+                if (arrFixedExpenses[i] !== "") { arrAsNumbers = arrAsNumbers.concat(parseFloat(arrFixedExpenses[i])) }
             }
             let sumFixedExp = 0
             for (let i = 0; i < arrAsNumbers.length; i++) {
@@ -169,9 +172,9 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
             }
             let monthlyDisposable = monthlyIncome - sumFixedExp
             let dailyDisposable = Math.floor(monthlyDisposable / 30)
-///CHANGED BELOW!
+            ///CHANGED BELOW!
             cb({ todaysBudget: dailyDisposable })
-            let update = { $set: { dailyDisposable } }
+            let update = { $set: { dailyDisposable, startOfDayBudget: dailyDisposable } }
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
             })
@@ -299,11 +302,11 @@ function updateTodaysVariable(userID, expense, cb) {
             // let newTodaysBudget = result.todaysBudget - expenseAmount
             let update = {
                 $set: {
-                    todaysBudget: newTodaysBudget, 
+                    todaysBudget: newTodaysBudget,
                     todaysVariable: newTodaysVariable
                 }
             }
-            cb({todaysBudget: newTodaysBudget, todaysVariable: newTodaysVariable})
+            cb({ todaysBudget: newTodaysBudget, todaysVariable: newTodaysVariable })
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
             })
@@ -324,10 +327,10 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
                 savingsToDate = result.savingsToDate :
                 savingsToDate = 0;
             savingsToDate += savedAmount
-            let todaysBudget= result.dailyDisposable + rolloverAmount
-            cb({ todaysBudget, todaysVariable:0})
+            let todaysBudget = result.dailyDisposable + rolloverAmount
+            cb({ todaysBudget, todaysVariable: 0 })
             // let update = { $set: { savingsToDate: savingsToDate, rollover: rolloverAmount, todaysBudget: 0 } }
-            let update = { $set: { savingsToDate, todaysBudget, todaysVariable: 0 } }
+            let update = { $set: { savingsToDate, todaysBudget, todaysVariable: 0, startOfDayBudget: todaysBudget } }
 
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
@@ -337,16 +340,22 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
 }
 
 function storeRecord(userID, cb) {
-    let dailyDisposable;
-    let todaysBudget;
+    // let dailyDisposable;
+    // let 
+    let startOfDayBudget;
+    let leftoverFromDay;
     let date = Date()
     let record = {};
     dbo.collection('users').findOne({ userID: userID }, (err, res) => {
         if (err) throw err
         if (res) {
-            dailyDisposable = res.dailyDisposable;
-            todaysBudget = res.todaysBudget
-            record = { dailyDisposable, todaysBudget, date }
+            // dailyDisposable = res.dailyDisposable;
+            // todaysBudget = res.todaysBudget
+            // record = { dailyDisposable, todaysBudget, date }
+
+            startOfDayBudget = res.startOfDayBudget
+            leftoverFromDay = res.todaysBudget
+            record = { startOfDayBudget, leftoverFromDay, date }
 
             dbo.collection('records').findOne({ userID: userID }, (err, result) => {
                 if (err) throw err
@@ -374,18 +383,18 @@ function storeRecord(userID, cb) {
     })
 }
 
-function getProgressAndTodaysInfo (userID, cb) {
-    dbo.collection('users').findOne({ userID: userID}, (err, result) =>{
+function getProgressAndTodaysInfo(userID, cb) {
+    dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
             let savingsToDate;
             (result.savingsToDate) ?
-            savingsToDate = result.savingsToDate :
-            savingsToDate = 0
+                savingsToDate = result.savingsToDate :
+                savingsToDate = 0
             let todaysBudget;
             (result.todaysBudget) ?
-            todaysBudget = result.todaysBudget :
-            todaysBudget = result.dailyDisposable 
+                todaysBudget = result.todaysBudget :
+                todaysBudget = result.dailyDisposable
             let goalAmount = result.goal.amount
             let toSend = { savingsToDate, todaysBudget, goalAmount, goalType: result.goal.type }
             cb(toSend)
