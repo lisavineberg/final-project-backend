@@ -115,7 +115,6 @@ function calculateDailySaveGoal(userID, goal, cb) {
             let daysInBetween = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24))
             let dailySaveGoal = Math.ceil(amount / daysInBetween)
             // returns the calculated amount as an object, { dailySaveGoal : 450 }
-
             if (dailySaveGoal < 5) {
                 cb({ dailySaveGoal, unrealistic: true, mustMakeFixedProfile: result.mustMakeFixedProfile })
             } else if (dailySaveGoal > 50) {
@@ -194,15 +193,6 @@ function calculateTodaysBudget(userID, cb) {
             (result.todaysVariable) ?
                 todaysVariable = result.todaysVariable :
                 todaysVariable = 0;
-            /*
-            
-                let rollover;
-            // if the user doesn't have a rollover yet, set it to zero
-            (result.rollover) ?
-                rollover = result.rollover :
-                rollover = 0;
-
-                */
             let updatedBudget;
             // if the user has already updated their budget, set it to the most recent (todaysBudget)
             // otherwise, set to the dailyDisposable
@@ -210,7 +200,6 @@ function calculateTodaysBudget(userID, cb) {
                 updatedBudget = result.todaysBudget :
                 updatedBudget = result.dailyDisposable
             // modify the budget as necessary
-            //REMOVED ROLLOVER!
             updatedBudget = updatedBudget - todaysVariable
             cb({ todaysBudget: updatedBudget })
             // reset todaysVariable and rollover to zero once they've been accounted for in the budget
@@ -256,34 +245,6 @@ function storeExpense(userID, expense, cb) {
     })
 }
 
-// function updateTodaysVariable(userID, expense, cb) {
-//     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
-//         if (err) throw err
-//         if (result) {
-//             let expenseAmount = parseFloat(expense.amount)
-//             let newTodaysVariable;
-//             (result.todaysVariable) ?
-//                 newTodaysVariable = expenseAmount + result.todaysVariable :
-//                 newTodaysVariable = expenseAmount;
-//             // only update the budget in /todaysBudget, when you call calculateTodaysBudget?
-//             // let newTodaysBudget = result.todaysBudget - expenseAmount
-//             let update = {
-//                 $set: {
-//                     // todaysBudget: newTodaysBudget, 
-//                     todaysVariable: newTodaysVariable
-//                 }
-//             }
-//             cb("variable updated")
-//             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
-//                 if (err) throw err
-//             })
-
-//         }
-//     })
-// }
-
-
-/////
 function updateTodaysVariable(userID, expense, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
@@ -297,9 +258,6 @@ function updateTodaysVariable(userID, expense, cb) {
             (result.todaysBudget) ?
                 newTodaysBudget = result.todaysBudget - expenseAmount :
                 newTodaysBudget = result.dailyDisposable - expenseAmount
-
-            // only update the budget in /todaysBudget, when you call calculateTodaysBudget?
-            // let newTodaysBudget = result.todaysBudget - expenseAmount
             let update = {
                 $set: {
                     todaysBudget: newTodaysBudget,
@@ -310,13 +268,9 @@ function updateTodaysVariable(userID, expense, cb) {
             dbo.collection('users').updateOne({ userID: userID }, update, (err, res) => {
                 if (err) throw err
             })
-
         }
     })
 }
-
-
-////
 
 function endOfDay(userID, savedAmount, rolloverAmount, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, result) => {
@@ -340,8 +294,6 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
 }
 
 function storeRecord(userID, cb) {
-    // let dailyDisposable;
-    // let 
     let startOfDayBudget;
     let leftoverFromDay;
     let date = Date()
@@ -349,10 +301,7 @@ function storeRecord(userID, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, res) => {
         if (err) throw err
         if (res) {
-            // dailyDisposable = res.dailyDisposable;
-            // todaysBudget = res.todaysBudget
-            // record = { dailyDisposable, todaysBudget, date }
-
+     
             startOfDayBudget = res.startOfDayBudget
             leftoverFromDay = res.todaysBudget
             record = { startOfDayBudget, leftoverFromDay, date }

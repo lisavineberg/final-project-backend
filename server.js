@@ -8,7 +8,6 @@ app.use(bodyParser.raw({ type: '*/*' }))
 
 functions.setup(() => app.listen(4000, console.log('listening on 4000')))
 
-//works?
 app.post('/signUp', (req, res) => {
     let parsedBody = JSON.parse(req.body.toString())
     let username = parsedBody.username
@@ -24,7 +23,6 @@ app.post('/signUp', (req, res) => {
     }
 })
 
-//works?
 app.post('/login', (req, res) => {
     /*
  expecting >>>> {username: username, password: password}
@@ -48,7 +46,6 @@ app.post('/login', (req, res) => {
     }
 })
 
-//works?
 app.post('/setUpGoal', (req, res) => {
     /*
     expecting  >>> {
@@ -60,7 +57,6 @@ app.post('/setUpGoal', (req, res) => {
         }
     }
     returns >>> {"dailySaveGoal" : 50}
-
     */
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
@@ -72,16 +68,13 @@ app.post('/setUpGoal', (req, res) => {
     functions.storeGoal(userID, { type, amount, endDate }, (result) => {
         console.log("store goal ", result)
     })
-    // calculates the dailySaveGoal and sends it to frontend as an object {"dailySaveGoal": 350}
+    // calculates the dailySaveGoal and sends it to frontend as an object {"dailySaveGoal": 350, mustMakeFixedProfile: t/f, unrealistic: t/f}
     functions.calculateDailySaveGoal(userID, { endDate, amount }, (result) => {
         console.log(result)
         res.send(JSON.stringify(result))
     })
-    // if dailySaveGoal is too high or low, prompt for more realistic? Could
-    // they still resubmit?
 })
 
-//works?
 app.post('/setUpFixed', (req, res) => {
     /*
 expecting  >>> {
@@ -111,16 +104,12 @@ returns >>> {"dailyDisposable" : 50}
         console.log(result)
         res.send(JSON.stringify(result))
     })
-
     // "stretch": have a catch if the disposable is negative?
 })
 
-//works?
 app.get('/todaysBudget', (req, res) => {
     let userID = parseInt(req.query.userID)
-    // check DB for dailyDisposable, todaysVariable, rollover
-    // reset rollover to 0
-    // send back dailySaveGoal?!
+    // check DB for dailyDisposable, todaysVariable
     functions.calculateTodaysBudget(userID, (result) => {
         // returns { todaysBudget: 39}
         res.send(JSON.stringify(result))
@@ -128,7 +117,6 @@ app.get('/todaysBudget', (req, res) => {
 
 })
 
-//works?
 app.post('/inputVariable', (req, res) => {
     /*
 expecting  >>> {
@@ -146,12 +134,10 @@ returns >>> nothing really?
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         console.log(result)
-
     })
     functions.updateTodaysVariable(userID, expense, (result) => {
         console.log(result)
         res.send(JSON.stringify(result))
-        // res.send(JSON.stringify(result))
     })
 })
 
@@ -179,13 +165,6 @@ savedAmount: 10
         // result: added to exisiting user/added to new user
         console.log(result)
     })
-
-    // check DB for savingsToDate, let savingsToDate += savedAmount
-    // assign rollover to rolloverAmount, let rollover = rolloverAmount
-    // have a separate fetch to get alert messages, and have these just be flags?
-    // if (savedAmount > dailySaveGoal) {res.send "Congrats on saving more than planned, keep it up!"}
-    // if (rolloverAmount < 0) {res.send "Careful not to spend too much!"}
-    // res.send(JSON.stringify('end of day'))
 })
 
 app.get('/getSavingsStatus', (req, res) => {
@@ -194,7 +173,6 @@ app.get('/getSavingsStatus', (req, res) => {
         console.log(result)
         res.send(JSON.stringify(result))
     })
-    // check DB for savingsToDate, goal amount
 })
 
 app.get('/showWeek')
