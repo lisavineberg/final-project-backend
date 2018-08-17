@@ -154,6 +154,9 @@ function calculateDailyDisposable(userID, fixedExpense, fixedIncome, cb) {
             if (fixedIncome.type === 'yearly') {
                 monthlyIncome = parseFloat(fixedIncome.amount) / 12
             }
+            if (fixedIncome.type === 'monthly'){
+                monthlyIncome === parseFloat(fixedIncome.amount)
+            }
             let arrFixedExpenses = Object.values(fixedExpense)
             let arrAsNumbers = []
             for (let i = 0; i < arrFixedExpenses.length; i++) {
