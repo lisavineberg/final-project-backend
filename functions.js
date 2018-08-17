@@ -387,7 +387,7 @@ function getProgressAndTodaysInfo (userID, cb) {
             todaysBudget = result.todaysBudget :
             todaysBudget = result.dailyDisposable 
             let goalAmount = result.goal.amount
-            let toSend = { savingsToDate, todaysBudget, goalAmount }
+            let toSend = { savingsToDate, todaysBudget, goalAmount, goalType: result.goal.type }
             cb(toSend)
 
         }
