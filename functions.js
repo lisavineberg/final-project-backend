@@ -2,6 +2,7 @@ const sha256 = require('sha256')
 const MongoClient = require('mongodb').MongoClient
 const url = 'mongodb://admin:password1@ds119662.mlab.com:19662/final-project-db'
 let dbo
+const moment = require('moment')
 
 function setup(cb) {
     MongoClient.connect(url, (err, db) => {
@@ -296,7 +297,7 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
 function storeRecord(userID, cb) {
     let startOfDayBudget;
     let leftoverFromDay;
-    let date = Date()
+    let date = moment().format('ddd D MMM YYYY')
     let record = {};
     dbo.collection('users').findOne({ userID: userID }, (err, res) => {
         if (err) throw err
@@ -352,6 +353,20 @@ function getProgressAndTodaysInfo(userID, cb) {
     })
 }
 
+function getRecord(userID, date, cb) {
+    date += " 2018"
+    dbo.collection('records').findOne({ userID: userID}, (err, result) => {
+        if (err) throw err
+        if (result) {
+            let toSend = result.record.find(obj => {
+                return obj.date === date
+            })
+            cb(toSend)
+        }
+    })
+}
+
+
 module.exports = {
     setup,
     signup,
@@ -365,5 +380,6 @@ module.exports = {
     updateTodaysVariable,
     endOfDay,
     storeRecord,
-    getProgressAndTodaysInfo
+    getProgressAndTodaysInfo,
+    getRecord
 }

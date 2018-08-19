@@ -183,4 +183,12 @@ a week array. Then have week.map(day => dailyDisposable : 100, todaysBudget : -1
 
 app.get('/getDate')
 
-// app.post('/deleteTransaction')
+app.post('/getRecord', (req, res) => {
+    let parsedBody = JSON.parse(req.body.toString())
+    let userID = parseInt(parsedBody.userID)
+    let date = parsedBody.date
+    functions.getRecord(userID, date, (result) => {
+        console.log(result)
+        res.send(JSON.stringify(result))
+    })
+})
