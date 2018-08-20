@@ -65,20 +65,26 @@ function login(username, password, cb) {
                     cb(toSend)
                 } else {
                     let todaysBudget;
-                    if (result.todaysBudget){ 
-                        todaysBudget = result.todaysBudget} 
-                        else {
-                        todaysBudget = result.dailyDisposable}
+                    if (result.todaysBudget) {
+                        todaysBudget = result.todaysBudget
+                    }
+                    else {
+                        todaysBudget = result.dailyDisposable
+                    }
                     let todaysVariable;
                     if (result.todaysVariable) {
-                        todaysVariable = result.todaysVariable} 
-                        else {
-                        todaysVariable = 0}
+                        todaysVariable = result.todaysVariable
+                    }
+                    else {
+                        todaysVariable = 0
+                    }
                     let startOfDayBudget;
-                    if (result.startOfDayBudget){
-                        startOfDayBudget = result.startOfDayBudget }
-                        else {
-                        startOfDayBudget = result.dailyDisposable}
+                    if (result.startOfDayBudget) {
+                        startOfDayBudget = result.startOfDayBudget
+                    }
+                    else {
+                        startOfDayBudget = result.dailyDisposable
+                    }
                     let toSend = {
                         userID: result.userID, dailySaveGoal: result.dailySaveGoal, todaysBudget, todaysVariable
                     }
@@ -195,16 +201,20 @@ function calculateTodaysBudget(userID, cb) {
             let todaysVariable;
             // if the user doesn't have a todaysVariable yet, set it to zero
             if (result.todaysVariable) {
-                todaysVariable = result.todaysVariable} 
-                else{
-                todaysVariable = 0}
+                todaysVariable = result.todaysVariable
+            }
+            else {
+                todaysVariable = 0
+            }
             let updatedBudget;
             // if the user has already updated their budget, set it to the most recent (todaysBudget)
             // otherwise, set to the dailyDisposable
             if (result.todaysBudget) {
-                updatedBudget = result.todaysBudget} 
-                else {
-                updatedBudget = result.dailyDisposable}
+                updatedBudget = result.todaysBudget
+            }
+            else {
+                updatedBudget = result.dailyDisposable
+            }
             // modify the budget as necessary
             updatedBudget = updatedBudget - todaysVariable
             cb({ todaysBudget: updatedBudget })
@@ -258,12 +268,14 @@ function updateTodaysVariable(userID, expense, cb) {
             let expenseAmount = parseFloat(expense.amount)
             let newTodaysVariable;
             if (result.todaysVariable) {
-                newTodaysVariable = expenseAmount + result.todaysVariable} 
-               else  {newTodaysVariable = expenseAmount}
+                newTodaysVariable = expenseAmount + result.todaysVariable
+            }
+            else { newTodaysVariable = expenseAmount }
             let newTodaysBudget;
-            if (result.todaysBudget){ 
-                newTodaysBudget = result.todaysBudget - expenseAmount} 
-             else    {newTodaysBudget = result.dailyDisposable - expenseAmount}
+            if (result.todaysBudget) {
+                newTodaysBudget = result.todaysBudget - expenseAmount
+            }
+            else { newTodaysBudget = result.dailyDisposable - expenseAmount }
             let update = {
                 $set: {
                     todaysBudget: newTodaysBudget,
@@ -284,9 +296,11 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
         if (result) {
             let savingsToDate;
             if (result.savingsToDate) {
-                savingsToDate = result.savingsToDate} 
-                else{
-                savingsToDate = 0}
+                savingsToDate = result.savingsToDate
+            }
+            else {
+                savingsToDate = 0
+            }
             savingsToDate += savedAmount
             let todaysBudget = result.dailyDisposable + rolloverAmount
             cb({ todaysBudget, todaysVariable: 0 })
@@ -308,7 +322,7 @@ function storeRecord(userID, cb) {
     dbo.collection('users').findOne({ userID: userID }, (err, res) => {
         if (err) throw err
         if (res) {
-     
+
             startOfDayBudget = res.startOfDayBudget
             leftoverFromDay = res.todaysBudget
             record = { startOfDayBudget, leftoverFromDay, date }
@@ -344,15 +358,19 @@ function getProgressAndTodaysInfo(userID, cb) {
         if (err) throw err
         if (result) {
             let savingsToDate;
-            if (result.savingsToDate){ 
-                savingsToDate = result.savingsToDate} 
-                else {
-                savingsToDate = 0}
+            if (result.savingsToDate) {
+                savingsToDate = result.savingsToDate
+            }
+            else {
+                savingsToDate = 0
+            }
             let todaysBudget;
             if (result.todaysBudget) {
-                todaysBudget = result.todaysBudget} 
-                else{ 
-                todaysBudget = result.dailyDisposable}
+                todaysBudget = result.todaysBudget
+            }
+            else {
+                todaysBudget = result.dailyDisposable
+            }
             let goalAmount = result.goal.amount
             let toSend = { savingsToDate, todaysBudget, goalAmount, goalType: result.goal.type }
             cb(toSend)
@@ -363,18 +381,18 @@ function getProgressAndTodaysInfo(userID, cb) {
 
 function getRecord(userID, date, cb) {
     date += " 2018"
-    dbo.collection('records').findOne({ userID: userID}, (err, result) => {
+    dbo.collection('records').findOne({ userID: userID }, (err, result) => {
         if (err) throw err
         if (result) {
             let toSend = result.record.find(obj => {
                 return obj.date === date
             })
-            if(toSend === undefined){
-                toSend = {startOfDayBudget: 0, leftoverFromDay: 0}
+            if (toSend === undefined) {
+                toSend = { startOfDayBudget: 0, leftoverFromDay: 0 }
             }
             cb(toSend)
         } else {
-            cb({startOfDayBudget: 0, leftoverFromDay: 0})
+            cb({ startOfDayBudget: 0, leftoverFromDay: 0 })
         }
     })
 }
