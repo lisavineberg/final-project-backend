@@ -373,6 +373,8 @@ function getRecord(userID, date, cb) {
                 toSend = {startOfDayBudget: 0, leftoverFromDay: 0}
             }
             cb(toSend)
+        } else {
+            cb({startOfDayBudget: 0, leftoverFromDay: 0})
         }
     })
 }
