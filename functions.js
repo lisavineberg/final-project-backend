@@ -65,17 +65,20 @@ function login(username, password, cb) {
                     cb(toSend)
                 } else {
                     let todaysBudget;
-                    (result.todaysBudget) ?
-                        todaysBudget = result.todaysBudget :
-                        todaysBudget = result.dailyDisposable
+                    if (result.todaysBudget){ 
+                        todaysBudget = result.todaysBudget} 
+                        else {
+                        todaysBudget = result.dailyDisposable}
                     let todaysVariable;
-                    (result.todaysVariable) ?
-                        todaysVariable = result.todaysVariable :
-                        todaysVariable = 0
+                    if (result.todaysVariable) {
+                        todaysVariable = result.todaysVariable} 
+                        else {
+                        todaysVariable = 0}
                     let startOfDayBudget;
-                    (result.startOfDayBudget)?
-                        startOfDayBudget = result.startOfDayBudget :
-                        startOfDayBudget = result.dailyDisposable
+                    if (result.startOfDayBudget){
+                        startOfDayBudget = result.startOfDayBudget }
+                        else {
+                        startOfDayBudget = result.dailyDisposable}
                     let toSend = {
                         userID: result.userID, dailySaveGoal: result.dailySaveGoal, todaysBudget, todaysVariable
                     }
@@ -191,15 +194,17 @@ function calculateTodaysBudget(userID, cb) {
         if (result) {
             let todaysVariable;
             // if the user doesn't have a todaysVariable yet, set it to zero
-            (result.todaysVariable) ?
-                todaysVariable = result.todaysVariable :
-                todaysVariable = 0;
+            if (result.todaysVariable) {
+                todaysVariable = result.todaysVariable} 
+                else{
+                todaysVariable = 0}
             let updatedBudget;
             // if the user has already updated their budget, set it to the most recent (todaysBudget)
             // otherwise, set to the dailyDisposable
-            (result.todaysBudget) ?
-                updatedBudget = result.todaysBudget :
-                updatedBudget = result.dailyDisposable
+            if (result.todaysBudget) {
+                updatedBudget = result.todaysBudget} 
+                else {
+                updatedBudget = result.dailyDisposable}
             // modify the budget as necessary
             updatedBudget = updatedBudget - todaysVariable
             cb({ todaysBudget: updatedBudget })
@@ -252,13 +257,13 @@ function updateTodaysVariable(userID, expense, cb) {
         if (result) {
             let expenseAmount = parseFloat(expense.amount)
             let newTodaysVariable;
-            (result.todaysVariable) ?
-                newTodaysVariable = expenseAmount + result.todaysVariable :
-                newTodaysVariable = expenseAmount;
+            if (result.todaysVariable) {
+                newTodaysVariable = expenseAmount + result.todaysVariable} 
+               else  {newTodaysVariable = expenseAmount}
             let newTodaysBudget;
-            (result.todaysBudget) ?
-                newTodaysBudget = result.todaysBudget - expenseAmount :
-                newTodaysBudget = result.dailyDisposable - expenseAmount
+            if (result.todaysBudget){ 
+                newTodaysBudget = result.todaysBudget - expenseAmount} 
+             else    {newTodaysBudget = result.dailyDisposable - expenseAmount}
             let update = {
                 $set: {
                     todaysBudget: newTodaysBudget,
@@ -278,9 +283,10 @@ function endOfDay(userID, savedAmount, rolloverAmount, cb) {
         if (err) throw err
         if (result) {
             let savingsToDate;
-            (result.savingsToDate) ?
-                savingsToDate = result.savingsToDate :
-                savingsToDate = 0;
+            if (result.savingsToDate) {
+                savingsToDate = result.savingsToDate} 
+                else{
+                savingsToDate = 0}
             savingsToDate += savedAmount
             let todaysBudget = result.dailyDisposable + rolloverAmount
             cb({ todaysBudget, todaysVariable: 0 })
@@ -338,13 +344,15 @@ function getProgressAndTodaysInfo(userID, cb) {
         if (err) throw err
         if (result) {
             let savingsToDate;
-            (result.savingsToDate) ?
-                savingsToDate = result.savingsToDate :
-                savingsToDate = 0
+            if (result.savingsToDate){ 
+                savingsToDate = result.savingsToDate} 
+                else {
+                savingsToDate = 0}
             let todaysBudget;
-            (result.todaysBudget) ?
-                todaysBudget = result.todaysBudget :
-                todaysBudget = result.dailyDisposable
+            if (result.todaysBudget) {
+                todaysBudget = result.todaysBudget} 
+                else{ 
+                todaysBudget = result.dailyDisposable}
             let goalAmount = result.goal.amount
             let toSend = { savingsToDate, todaysBudget, goalAmount, goalType: result.goal.type }
             cb(toSend)
@@ -361,6 +369,9 @@ function getRecord(userID, date, cb) {
             let toSend = result.record.find(obj => {
                 return obj.date === date
             })
+            if(toSend === undefined){
+                toSend = {startOfDayBudget: 0, leftoverFromDay: 0}
+            }
             cb(toSend)
         }
     })

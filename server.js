@@ -188,7 +188,6 @@ app.post('/getRecord', (req, res) => {
     let userID = parseInt(parsedBody.userID)
     let date = parsedBody.date
     functions.getRecord(userID, date, (result) => {
-        console.log(result)
         res.send(JSON.stringify(result))
     })
 })
