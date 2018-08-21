@@ -397,6 +397,20 @@ function getRecord(userID, date, cb) {
     })
 }
 
+function getDaysAnalytics(userID, date, cb){
+    dbo.collection('transactions').findOne({userID: userID}, (err, result) => {
+        if (err) throw err
+        if (result){
+            let toSend = result.expense.map(obj =>{
+                if(obj.date === date){
+                return obj}
+            })
+            toSend = toSend.filter((obj) => obj)
+            cb(toSend)
+        }
+
+    })
+}
 
 module.exports = {
     setup,
@@ -412,5 +426,6 @@ module.exports = {
     endOfDay,
     storeRecord,
     getProgressAndTodaysInfo,
-    getRecord
+    getRecord,
+    getDaysAnalytics
 }

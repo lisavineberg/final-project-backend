@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const functions = require('./functions.js')
+const moment = require('moment')
 
 
 app.use(bodyParser.raw({ type: '*/*' }))
@@ -130,7 +131,7 @@ returns >>> nothing really?
     let parsedBody = JSON.parse(req.body.toString())
     let userID = parsedBody.userID
     let expense = parsedBody.expense
-    expense.date = Date()
+    expense.date = moment().format('ddd D MMM YYYY')
     // Have a check to switch the sign 
     functions.storeExpense(userID, expense, (result) => {
         console.log(result)
@@ -188,6 +189,15 @@ app.post('/getRecord', (req, res) => {
     let userID = parseInt(parsedBody.userID)
     let date = parsedBody.date
     functions.getRecord(userID, date, (result) => {
+        res.send(JSON.stringify(result))
+    })
+})
+
+app.post('/getDaysAnalytics', (req, res) => {
+    let parsedBody= JSON.parse(req.body.toString())
+    let userID = parsedBody.userID
+    let date = parsedBody.date
+    functions.getDaysAnalytics(userID, date, (result) => {
         res.send(JSON.stringify(result))
     })
 })
